@@ -1,0 +1,7 @@
+interface:
+  display_name: "Commit and push staged changes"
+  short_description: "Commit staged Assinatur changes and push main."
+  default_prompt: "Use $committing-changes to commit my staged changes and push main."
+
+policy:
+  allow_implicit_invocation: true

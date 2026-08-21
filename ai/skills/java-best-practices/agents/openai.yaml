@@ -1,0 +1,4 @@
+interface:
+  display_name: "Java Best Practices"
+  short_description: "Apply reliable Java and Spring practices"
+  default_prompt: "Use $java-best-practices to implement or review this Java change with appropriate tests."

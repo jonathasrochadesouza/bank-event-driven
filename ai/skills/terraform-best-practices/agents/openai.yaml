@@ -1,0 +1,4 @@
+interface:
+  display_name: "Terraform Best Practices"
+  short_description: "Build and review safe Terraform infrastructure"
+  default_prompt: "Use $terraform-best-practices to implement or review this Terraform change safely."
