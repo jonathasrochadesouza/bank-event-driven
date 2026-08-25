@@ -1,0 +1,99 @@
+name: shop-lab
+
+# ---------------------------------------------------------------------------
+# shop-lab :: Phase 1 (messaging infrastructure)
+#   - kafka        : single broker in KRaft mode (no Zookeeper)
+#   - kafka-init   : creates topic order.created.v1 idempotently, then exits
+#   - kafka-ui     : web UI to inspect topics / consumer groups / messages
+# Later phases append: order-service, logistic-service, otel-collector,
+# tempo, prometheus, kafka-exporter, grafana.
+# ---------------------------------------------------------------------------
+
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.7.1
+    container_name: shop-lab-kafka
+    hostname: kafka
+    # WSL2 shuts down the VM (and dockerd) when idle; unless-stopped lets the
+    # broker recover automatically when the daemon comes back.
+    restart: unless-stopped
+    ports:
+      # host -> container. External clients use ${KAFKA_HOST_PORT}; inside the
+      # network services use kafka:29092.
+      - "${KAFKA_HOST_PORT}:9092"
+    environment:
+      # --- KRaft: this node is both broker and controller ---
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID}
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # --- listeners ---
+      # INTERNAL (29092) for in-network services, HOST (9092) for the host,
+      # CONTROLLER (29093) for the KRaft quorum.
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,HOST://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,HOST://${KAFKA_EXTERNAL_BOOTSTRAP}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      # --- single-node replication settings ---
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:29092 --list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+    networks:
+      - shop-lab-network
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.7.1
+    container_name: shop-lab-kafka-init
+    # One-shot job: must NOT restart after it finishes successfully.
+    restart: "no"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+        echo "Creating topic ${TOPIC_ORDER_CREATED} (partitions=${TOPIC_PARTITIONS}, rf=${TOPIC_REPLICATION_FACTOR})..."
+        kafka-topics --bootstrap-server kafka:29092 \
+          --create --if-not-exists \
+          --topic ${TOPIC_ORDER_CREATED} \
+          --partitions ${TOPIC_PARTITIONS} \
+          --replication-factor ${TOPIC_REPLICATION_FACTOR}
+        echo "Current topics:"
+        kafka-topics --bootstrap-server kafka:29092 --list
+    networks:
+      - shop-lab-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: shop-lab-kafka-ui
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "${KAFKA_UI_PORT}:8080"
+    environment:
+      DYNAMIC_CONFIG_ENABLED: "true"
+      KAFKA_CLUSTERS_0_NAME: shop-lab
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - shop-lab-network
+
+networks:
+  shop-lab-network:
+    driver: bridge
+    name: shop-lab-network
+
+volumes:
+  kafka-data:

@@ -1,16 +1,16 @@
 ## 1. Lab scaffolding
 
-- [ ] 1.1 Create `shop-lab/` directory structure: `order-service/`, `logistic-service/`, `observability/`, `loadtest/`
-- [ ] 1.2 Add a root `README.md` for the lab with up/down commands and access URLs (kafka-ui, Grafana, Prometheus, Tempo)
-- [ ] 1.3 Add `.env` (or compose defaults) for ports, bootstrap servers, topic name, partitions, and OTLP endpoint
-- [ ] 1.4 Download the OpenTelemetry Java Agent jar into `shop-lab/observability/agent/` and document its version
+- [x] 1.1 Create `shop-lab/` directory structure: `order-service/`, `logistic-service/`, `observability/`, `loadtest/`
+- [x] 1.2 Add a root `README.md` for the lab with up/down commands and access URLs (kafka-ui, Grafana, Prometheus, Tempo)
+- [x] 1.3 Add `.env` (or compose defaults) for ports, bootstrap servers, topic name, partitions, and OTLP endpoint
+- [ ] 1.4 Download the OpenTelemetry Java Agent jar into `shop-lab/observability/agent/` and document its version _(deferred to Phase 3 — only needed when wiring tracing)_
 
 ## 2. Messaging infrastructure (Phase 1)
 
-- [ ] 2.1 Add Kafka (KRaft, single broker) service to `docker-compose.yml` with a lab network and healthcheck
-- [ ] 2.2 Add an init container that creates topic `order.created.v1` idempotently with the configured partition count
-- [ ] 2.3 Add `kafka-ui` service connected to the broker
-- [ ] 2.4 Verify: stack starts with no Zookeeper, topic exists, and kafka-ui shows the topic
+- [x] 2.1 Add Kafka (KRaft, single broker) service to `docker-compose.yml` with a lab network and healthcheck
+- [x] 2.2 Add an init container that creates topic `order.created.v1` idempotently with the configured partition count
+- [x] 2.3 Add `kafka-ui` service connected to the broker
+- [x] 2.4 Verify: stack starts with no Zookeeper, topic exists, and kafka-ui shows the topic
 
 ## 3. order-service producer (Phase 2)
 
