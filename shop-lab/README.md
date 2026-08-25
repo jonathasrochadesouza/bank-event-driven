@@ -32,7 +32,7 @@ shop-lab/
 | Fase | Conteúdo | Status |
 |------|----------|--------|
 | 1 | Kafka (KRaft, 1 broker) + tópico + kafka-ui | ✅ concluída |
-| 2 | order-service + logistic-service ponta a ponta | pendente |
+| 2 | order-service + logistic-service ponta a ponta | ✅ concluída |
 | 3 | OTel Java Agent + Collector + Tempo (trace ponta a ponta) | pendente |
 | 4 | Micrometer + Prometheus (scrape 1s) + kafka-exporter + Grafana | pendente |
 | 5 | JMeter via REST | pendente |
@@ -92,6 +92,40 @@ docker compose down
 # reset completo (remove o volume kafka-data e o estado do broker)
 docker compose down -v
 ```
+
+## Fase 2 — Serviços de aplicação (order-service + logistic-service)
+
+Produtor e consumidor Spring Boot (Java 21, Spring Boot 3.3.5), construídos via
+Docker multi-stage. Detalhes e validação manual em `docs/PHASE-2-VALIDATION.md`.
+
+| Serviço | Container | Porta host | Papel |
+|---------|-----------|------------|-------|
+| order-service | `shop-lab-order-service` | `18080` | `POST /orders` publica `order.created.v1` (key=orderId) |
+| logistic-service | `shop-lab-logistic-service` | `18081` | consome, limita a 50 msg/s, deduplica por `eventId` |
+
+### Testar ponta a ponta
+
+```bash
+cd /mnt/c/Dev/Personal/bank-event-driven/shop-lab
+docker compose up -d --build
+
+# criar um pedido (retorna o orderId)
+curl -s -X POST http://localhost:18080/orders \
+  -H 'Content-Type: application/json' \
+  -d @scripts/sample-order.json
+
+# ver o logistic-service processar
+docker logs shop-lab-logistic-service | grep 'Processed order' | tail
+
+# offsets/lag do consumer group
+docker exec shop-lab-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:29092 --describe --group logistic-service
+```
+
+### Métricas (já disponíveis, exploradas na Fase 4)
+
+- order-service: `curl http://localhost:18080/actuator/prometheus | grep orders_produced_total`
+- logistic-service: `curl http://localhost:18081/actuator/prometheus | grep -E 'orders_consumed_total|orders_processing_seconds'`
 
 ## Notas de design
 

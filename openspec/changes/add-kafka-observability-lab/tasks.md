@@ -14,21 +14,21 @@
 
 ## 3. order-service producer (Phase 2)
 
-- [ ] 3.1 Scaffold Spring Boot `order-service` with `spring-kafka` and `spring-boot-starter-web`
-- [ ] 3.2 Define the JSON event envelope + payload model (eventId, eventType, eventVersion, occurredAt, source, data with money in minor units)
-- [ ] 3.3 Implement `POST /orders` with request validation returning the generated `orderId`
-- [ ] 3.4 Implement the producer: publish `order.created.v1` keyed by `orderId` using JSON serialization
-- [ ] 3.5 Add Micrometer `orders_produced_total` counter incremented on successful publish
-- [ ] 3.6 Verify end-to-end: a POST produces one readable JSON record on the topic (inspect in kafka-ui)
+- [x] 3.1 Scaffold Spring Boot `order-service` with `spring-kafka` and `spring-boot-starter-web`
+- [x] 3.2 Define the JSON event envelope + payload model (eventId, eventType, eventVersion, occurredAt, source, data with money in minor units)
+- [x] 3.3 Implement `POST /orders` with request validation returning the generated `orderId`
+- [x] 3.4 Implement the producer: publish `order.created.v1` keyed by `orderId` using JSON serialization
+- [x] 3.5 Add Micrometer `orders_produced_total` counter incremented on successful publish
+- [x] 3.6 Verify end-to-end: a POST produces one readable JSON record on the topic (inspect in kafka-ui)
 
 ## 4. logistic-service consumer (Phase 2)
 
-- [ ] 4.1 Scaffold Spring Boot `logistic-service` with `spring-kafka`
-- [ ] 4.2 Implement `@KafkaListener` on `order.created.v1` bound to the `logistic-service` consumer group with JSON deserialization
-- [ ] 4.3 Add in-application rate limiter (Resilience4j or Guava) permitting 50 msg/s per instance; acquire before processing
-- [ ] 4.4 Add idempotency: deduplicate by `eventId` so reprocessing is a no-op
-- [ ] 4.5 Add Micrometer `orders_consumed_total` counter and a processing-latency timer
-- [ ] 4.6 Verify: events flow producer → consumer end to end and offsets advance
+- [x] 4.1 Scaffold Spring Boot `logistic-service` with `spring-kafka`
+- [x] 4.2 Implement `@KafkaListener` on `order.created.v1` bound to the `logistic-service` consumer group with JSON deserialization
+- [x] 4.3 Add in-application rate limiter (Resilience4j or Guava) permitting 50 msg/s per instance; acquire before processing
+- [x] 4.4 Add idempotency: deduplicate by `eventId` so reprocessing is a no-op
+- [x] 4.5 Add Micrometer `orders_consumed_total` counter and a processing-latency timer
+- [x] 4.6 Verify: events flow producer → consumer end to end and offsets advance
 
 ## 5. Distributed tracing (Phase 3)
 

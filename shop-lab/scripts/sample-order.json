@@ -1,0 +1,15 @@
+{
+  "customerId": "CUST-88213",
+  "currency": "BRL",
+  "items": [
+    { "sku": "SKU-1001", "name": "Fone Bluetooth", "quantity": 1, "unitPrice": 19990 },
+    { "sku": "SKU-2050", "name": "Cabo USB-C", "quantity": 2, "unitPrice": 2500 }
+  ],
+  "shippingAddress": {
+    "street": "Av. Paulista, 1000",
+    "city": "Sao Paulo",
+    "state": "SP",
+    "zipCode": "01310-100",
+    "country": "BR"
+  }
+}
