@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: order-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:kafka:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        # Do not couple consumers to this service's class names via type headers.
+        spring.json.add.type.headers: false
+  jackson:
+    serialization:
+      # ISO-8601 timestamps instead of numeric epochs.
+      write-dates-as-timestamps: false
+
+app:
+  topic:
+    order-created: ${TOPIC_ORDER_CREATED:order.created.v1}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: order-service

@@ -18,6 +18,9 @@ spring:
         spring.json.trusted.packages: "com.jkrocha.shoplab.*"
     listener:
       concurrency: 1
+      # Lets Spring Kafka create observations for listener processing. The OTel
+      # agent uses the propagated Kafka trace context to continue the producer trace.
+      observation-enabled: true
   jackson:
     deserialization:
       fail-on-unknown-properties: false

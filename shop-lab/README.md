@@ -33,7 +33,7 @@ shop-lab/
 |------|----------|--------|
 | 1 | Kafka (KRaft, 1 broker) + tópico + kafka-ui | ✅ concluída |
 | 2 | order-service + logistic-service ponta a ponta | ✅ concluída |
-| 3 | OTel Java Agent + Collector + Tempo (trace ponta a ponta) | pendente |
+| 3 | OTel Java Agent + Collector + Tempo (trace ponta a ponta) | ✅ concluída |
 | 4 | Micrometer + Prometheus (scrape 1s) + kafka-exporter + Grafana | pendente |
 | 5 | JMeter via REST | pendente |
 | 6 | Exercício de backpressure e tuning | pendente |
@@ -126,6 +126,12 @@ docker exec shop-lab-kafka kafka-consumer-groups \
 
 - order-service: `curl http://localhost:18080/actuator/prometheus | grep orders_produced_total`
 - logistic-service: `curl http://localhost:18081/actuator/prometheus | grep -E 'orders_consumed_total|orders_processing_seconds'`
+
+## Phase 3 — distributed tracing
+
+The OpenTelemetry Java Agent, Collector, and Tempo are now part of the Compose
+stack. See `docs/PHASE-3-VALIDATION.md` for the end-to-end trace check; the
+Tempo data-source provisioning is ready for the Grafana service in Phase 4.
 
 ## Notas de design
 

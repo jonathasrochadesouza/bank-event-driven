@@ -1,0 +1,7 @@
+C:\Dev\Personal\bank-event-driven\shop-lab\order-service\src\main\java\com\jkrocha\shoplab\order\api\CreateOrderRequest.java
+C:\Dev\Personal\bank-event-driven\shop-lab\order-service\src\main\java\com\jkrocha\shoplab\order\api\OrderController.java
+C:\Dev\Personal\bank-event-driven\shop-lab\order-service\src\main\java\com\jkrocha\shoplab\order\event\OrderCreatedEvent.java
+C:\Dev\Personal\bank-event-driven\shop-lab\order-service\src\main\java\com\jkrocha\shoplab\order\event\OrderData.java
+C:\Dev\Personal\bank-event-driven\shop-lab\order-service\src\main\java\com\jkrocha\shoplab\order\kafka\OrderEventProducer.java
+C:\Dev\Personal\bank-event-driven\shop-lab\order-service\src\main\java\com\jkrocha\shoplab\order\OrderServiceApplication.java
+C:\Dev\Personal\bank-event-driven\shop-lab\order-service\src\main\java\com\jkrocha\shoplab\order\service\OrderService.java

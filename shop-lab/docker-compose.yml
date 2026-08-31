@@ -5,8 +5,7 @@ name: shop-lab
 #   - kafka        : single broker in KRaft mode (no Zookeeper)
 #   - kafka-init   : creates topic order.created.v1 idempotently, then exits
 #   - kafka-ui     : web UI to inspect topics / consumer groups / messages
-# Later phases append: order-service, logistic-service, otel-collector,
-# tempo, prometheus, kafka-exporter, grafana.
+# Later phases append: prometheus, kafka-exporter, grafana.
 # ---------------------------------------------------------------------------
 
 services:
@@ -103,6 +102,14 @@ services:
     environment:
       KAFKA_BOOTSTRAP: kafka:29092
       TOPIC_ORDER_CREATED: ${TOPIC_ORDER_CREATED}
+      JAVA_TOOL_OPTIONS: -javaagent:/app/otel/opentelemetry-javaagent.jar
+      OTEL_SERVICE_NAME: order-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTLP_GRPC_ENDPOINT}
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_LOGS_EXPORTER: none
+      OTEL_TRACES_EXPORTER: otlp
+    volumes:
+      - ./observability/agent/opentelemetry-javaagent.jar:/app/otel/opentelemetry-javaagent.jar:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
       interval: 10s
@@ -126,12 +133,50 @@ services:
       KAFKA_BOOTSTRAP: kafka:29092
       TOPIC_ORDER_CREATED: ${TOPIC_ORDER_CREATED}
       RATE_LIMIT_PERMITS: ${RATE_LIMIT_PERMITS}
+      JAVA_TOOL_OPTIONS: -javaagent:/app/otel/opentelemetry-javaagent.jar
+      OTEL_SERVICE_NAME: logistic-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTLP_GRPC_ENDPOINT}
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_LOGS_EXPORTER: none
+      OTEL_TRACES_EXPORTER: otlp
+    volumes:
+      - ./observability/agent/opentelemetry-javaagent.jar:/app/otel/opentelemetry-javaagent.jar:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 40s
+    networks:
+      - shop-lab-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    container_name: shop-lab-otel-collector
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol-contrib/config.yml"]
+    volumes:
+      - ./observability/otel-collector/config.yml:/etc/otelcol-contrib/config.yml:ro
+    expose:
+      - "4317"
+      - "4318"
+      - "8889"
+    depends_on:
+      tempo:
+        condition: service_started
+    networks:
+      - shop-lab-network
+
+  tempo:
+    image: grafana/tempo:2.7.2
+    container_name: shop-lab-tempo
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo.yml"]
+    ports:
+      - "${TEMPO_HTTP_PORT}:3200"
+    volumes:
+      - ./observability/tempo/tempo.yml:/etc/tempo.yml:ro
+      - tempo-data:/var/tempo
     networks:
       - shop-lab-network
 
@@ -142,3 +187,4 @@ networks:
 
 volumes:
   kafka-data:
+  tempo-data:

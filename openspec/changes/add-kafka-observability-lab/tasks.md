@@ -3,7 +3,7 @@
 - [x] 1.1 Create `shop-lab/` directory structure: `order-service/`, `logistic-service/`, `observability/`, `loadtest/`
 - [x] 1.2 Add a root `README.md` for the lab with up/down commands and access URLs (kafka-ui, Grafana, Prometheus, Tempo)
 - [x] 1.3 Add `.env` (or compose defaults) for ports, bootstrap servers, topic name, partitions, and OTLP endpoint
-- [ ] 1.4 Download the OpenTelemetry Java Agent jar into `shop-lab/observability/agent/` and document its version _(deferred to Phase 3 — only needed when wiring tracing)_
+- [x] 1.4 Download the OpenTelemetry Java Agent jar into `shop-lab/observability/agent/` and document its version _(deferred to Phase 3 — only needed when wiring tracing)_
 
 ## 2. Messaging infrastructure (Phase 1)
 
@@ -32,11 +32,11 @@
 
 ## 5. Distributed tracing (Phase 3)
 
-- [ ] 5.1 Attach the OTel Java Agent to both services via `JAVA_TOOL_OPTIONS`/entrypoint and set OTLP endpoint + service names
-- [ ] 5.2 Add OpenTelemetry Collector service with `otlp` receiver, `batch` processor, and exporters to Tempo (traces) and Prometheus (metrics)
-- [ ] 5.3 Add Tempo service and config; wire it as a Grafana data source
-- [ ] 5.4 Ensure consumer-side trace propagation (agent auto-propagation; enable `observationEnabled(true)` if needed)
-- [ ] 5.5 Verify: a single trace in Grafana/Tempo spans HTTP → produce → consume → processing with one shared trace id
+- [x] 5.1 Attach the OTel Java Agent to both services via `JAVA_TOOL_OPTIONS`/entrypoint and set OTLP endpoint + service names
+- [x] 5.2 Add OpenTelemetry Collector service with `otlp` receiver, `batch` processor, and exporters to Tempo (traces) and Prometheus (metrics)
+- [x] 5.3 Add Tempo service and config; wire it as a Grafana data source
+- [x] 5.4 Ensure consumer-side trace propagation (agent auto-propagation; enable `observationEnabled(true)` if needed)
+- [x] 5.5 Verify: a single trace in Grafana/Tempo spans HTTP → produce → consume → processing with one shared trace id
 
 ## 6. Throughput metrics and dashboards (Phase 4)
 
