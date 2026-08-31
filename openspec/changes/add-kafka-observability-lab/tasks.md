@@ -40,16 +40,17 @@
 
 ## 6. Throughput metrics and dashboards (Phase 4)
 
-- [ ] 6.1 Add Prometheus service with `scrape_interval: 1s` and targets (Collector metrics, kafka-exporter)
-- [ ] 6.2 Add `kafka-exporter` service exposing consumer lag per partition for the `logistic-service` group
-- [ ] 6.3 Add Grafana with provisioned data sources (Prometheus, Tempo) and a lab dashboard: produced/s, consumed/s, consumer lag, latency percentiles
-- [ ] 6.4 Verify: dashboards update in near real time while traffic flows
+- [x] 6.1 Add Prometheus service with `scrape_interval: 1s` and targets (Collector metrics, kafka-exporter)
+- [x] 6.2 Add `kafka-exporter` service exposing consumer lag per partition for the `logistic-service` group
+- [x] 6.3 Add Grafana with provisioned data sources (Prometheus, Tempo) and a lab dashboard: produced/s, consumed/s, consumer lag, latency percentiles
+- [x] 6.4 Verify: dashboards update in near real time while traffic flows
 
 ## 7. Load testing (Phase 5)
 
-- [ ] 7.1 Create a JMeter `.jmx` plan issuing `POST /orders` with a configurable request rate (thread group + throughput timer)
-- [ ] 7.2 Parameterize target host/port and request rate
-- [ ] 7.3 Verify: running the plan above 50 req/s makes produced/s exceed consumed/s and lag rise in Grafana
+- [x] 7.1 Create a JMeter `.jmx` plan issuing `POST /orders` with a configurable request rate (thread group + throughput timer)
+- [x] 7.2 Parameterize target host/port and request rate
+- [x] 7.3 Add a same-origin browser bulk-order page where the user chooses an order count and starts the automatic submission
+- [x] 7.4 Verify: JMeter above 50 req/s and a browser-launched batch both create observable traffic; the JMeter scenario makes produced/s exceed consumed/s and lag rise in Grafana
 
 ## 8. Backpressure exercise and docs (Phase 6)
 

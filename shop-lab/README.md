@@ -34,8 +34,8 @@ shop-lab/
 | 1 | Kafka (KRaft, 1 broker) + tópico + kafka-ui | ✅ concluída |
 | 2 | order-service + logistic-service ponta a ponta | ✅ concluída |
 | 3 | OTel Java Agent + Collector + Tempo (trace ponta a ponta) | ✅ concluída |
-| 4 | Micrometer + Prometheus (scrape 1s) + kafka-exporter + Grafana | pendente |
-| 5 | JMeter via REST | pendente |
+| 4 | Micrometer + Prometheus (scrape 1s) + kafka-exporter + Grafana | ✅ concluída |
+| 5 | JMeter via REST + página de disparo manual | ✅ concluída |
 | 6 | Exercício de backpressure e tuning | pendente |
 
 ## Fase 1 — Infraestrutura de mensageria
@@ -132,6 +132,32 @@ docker exec shop-lab-kafka kafka-consumer-groups \
 The OpenTelemetry Java Agent, Collector, and Tempo are now part of the Compose
 stack. See `docs/PHASE-3-VALIDATION.md` for the end-to-end trace check; the
 Tempo data-source provisioning is ready for the Grafana service in Phase 4.
+
+## Phase 4 — throughput metrics and dashboard
+
+Prometheus is available at http://localhost:9091 and Grafana at
+http://localhost:3001 (`admin` / `admin`). The Grafana dashboard is provisioned
+as **Shop Lab - Throughput and Lag**. See `docs/PHASE-4-VALIDATION.md` for the
+targets, PromQL checks, and expected metrics.
+
+## Fase 5 — geração de carga
+
+Há duas formas complementares de gerar pedidos:
+
+- **Página web:** abra http://localhost:18080/load-generator/, escolha quantos
+  orders criar e clique em **Enviar agora**. Ela envia um lote automaticamente,
+  com até 20 requests simultâneos e progresso visível.
+- **JMeter:** execute `loadtest/order-load-test.jmx` para uma taxa sustentada e
+  reproduzível. O exemplo de 80 req/s por 45 s é:
+
+```bash
+jmeter -n -t loadtest/order-load-test.jmx -l /tmp/order-load-results.jtl \
+  -JtargetHost=localhost -JtargetPort=18080 \
+  -JrequestsPerMinute=4800 -JdurationSeconds=45 -Jthreads=30
+```
+
+Veja `docs/PHASE-5-VALIDATION.md` para todos os parâmetros e o comportamento
+esperado no dashboard.
 
 ## Notas de design
 

@@ -180,6 +180,60 @@ services:
     networks:
       - shop-lab-network
 
+  prometheus:
+    image: prom/prometheus:v3.3.0
+    container_name: shop-lab-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      otel-collector:
+        condition: service_started
+      kafka-exporter:
+        condition: service_started
+    networks:
+      - shop-lab-network
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.9.0
+    container_name: shop-lab-kafka-exporter
+    restart: unless-stopped
+    command:
+      - --kafka.server=kafka:29092
+      - --group.filter=^logistic-service$
+      - --topic.filter=^order.created.v1$
+    expose:
+      - "9308"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - shop-lab-network
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: shop-lab-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      prometheus:
+        condition: service_started
+      tempo:
+        condition: service_started
+    networks:
+      - shop-lab-network
+
 networks:
   shop-lab-network:
     driver: bridge
@@ -188,3 +242,5 @@ networks:
 volumes:
   kafka-data:
   tempo-data:
+  prometheus-data:
+  grafana-data:

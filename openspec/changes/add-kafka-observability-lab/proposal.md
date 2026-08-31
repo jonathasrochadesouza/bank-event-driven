@@ -10,7 +10,7 @@ We need a hands-on, local laboratory to learn and validate event-driven messagin
 - Add single-broker Apache Kafka in **KRaft mode** (no Zookeeper), topic auto-creation for `order.created.v1`, and `kafka-ui` for topic inspection.
 - Add distributed tracing via the **OpenTelemetry Java Agent** (zero code) on both services, exporting OTLP to an **OpenTelemetry Collector**, with **Tempo** as the trace backend. Trace context propagates across Kafka (HTTP → produce → consume).
 - Add metrics via **Micrometer** exported through the Collector to **Prometheus** (scrape interval `1s`), plus `kafka-exporter` for consumer lag per partition, visualized in **Grafana** (produced/s, consumed/s, lag, latency).
-- Add a **JMeter** test plan that drives load via REST against `order-service` to exceed 50 msg/s and produce observable consumer lag.
+- Add a **JMeter** test plan that drives load via REST against `order-service` to exceed 50 msg/s and produce observable consumer lag, plus a same-origin browser page for manually dispatching a chosen number of orders.
 - Use **JSON** serialization for events in the lab (Schema Registry / Avro noted as future evolution, out of scope).
 
 ## Capabilities
@@ -21,7 +21,7 @@ We need a hands-on, local laboratory to learn and validate event-driven messagin
 - `logistics-event-consumption`: `logistic-service` consumption with 50 msg/s in-application rate limiting and idempotent handling.
 - `distributed-tracing`: OpenTelemetry Java Agent instrumentation, Collector, and Tempo delivering a single end-to-end trace across HTTP and Kafka.
 - `throughput-metrics`: Micrometer + Prometheus (1s scrape) + kafka-exporter + Grafana dashboards for produced/s, consumed/s, and consumer lag.
-- `load-testing`: JMeter REST-based load plan to generate configurable request rates against `order-service`.
+- `load-testing`: JMeter REST-based load plan to generate configurable request rates against `order-service`, plus a browser bulk-order launcher for interactive experiments.
 
 ### Modified Capabilities
 <!-- None. This is a greenfield lab; no existing specs change. -->
