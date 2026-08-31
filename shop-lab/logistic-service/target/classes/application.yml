@@ -1,0 +1,38 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: logistic-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:kafka:29092}
+    consumer:
+      group-id: logistic-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        # Producer sends no type headers, so pin the target type here.
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.jkrocha.shoplab.logistic.event.OrderCreatedEvent
+        spring.json.trusted.packages: "com.jkrocha.shoplab.*"
+    listener:
+      concurrency: 1
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+
+app:
+  topic:
+    order-created: ${TOPIC_ORDER_CREATED:order.created.v1}
+  rate-limit:
+    permits-per-second: ${RATE_LIMIT_PERMITS:50}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: logistic-service
