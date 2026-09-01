@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop Lab — Order Burst Launcher</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; color: #eef2ff; background: radial-gradient(circle at 18% 15%, #4338ca 0, transparent 34%), radial-gradient(circle at 84% 78%, #0f766e 0, transparent 38%), #080b18; }
+    main { width: min(680px, calc(100% - 32px)); padding: 42px; border: 1px solid #ffffff22; border-radius: 24px; background: #11172bd9; box-shadow: 0 28px 80px #0008; backdrop-filter: blur(16px); }
+    .eyebrow { margin: 0 0 14px; color: #7dd3fc; font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -.06em; line-height: 1; }
+    .lead { color: #cbd5e1; line-height: 1.6; margin: 20px 0 32px; }
+    form { display: grid; grid-template-columns: 1fr auto; gap: 12px; }
+    label { display: grid; gap: 8px; color: #cbd5e1; font-size: .9rem; font-weight: 700; }
+    input { width: 100%; border: 1px solid #64748b; border-radius: 12px; padding: 14px; color: inherit; background: #080b18; font: inherit; font-size: 1.1rem; outline: none; }
+    input:focus { border-color: #38bdf8; box-shadow: 0 0 0 3px #38bdf833; }
+    button { align-self: end; min-height: 51px; padding: 0 20px; border: 0; border-radius: 12px; color: #06101c; background: linear-gradient(135deg, #67e8f9, #a7f3d0); cursor: pointer; font: 800 1rem inherit; }
+    button:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+    button:disabled { cursor: wait; opacity: .65; }
+    .progress { height: 10px; margin: 30px 0 12px; overflow: hidden; border-radius: 999px; background: #26314a; }
+    .progress > div { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #38bdf8, #34d399); transition: width .15s ease; }
+    .status { display: flex; justify-content: space-between; gap: 12px; color: #cbd5e1; font-variant-numeric: tabular-nums; }
+    #message { margin: 24px 0 0; min-height: 1.4em; color: #94a3b8; }
+    #message.success { color: #86efac; } #message.error { color: #fca5a5; }
+    .hint { margin: 28px 0 0; color: #94a3b8; font-size: .86rem; line-height: 1.5; }
+    code { padding: 2px 5px; border-radius: 5px; color: #bae6fd; background: #1e293b; }
+    @media (max-width: 520px) { main { padding: 30px 22px; } form { grid-template-columns: 1fr; } button { width: 100%; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Shop Lab · manual load launcher</p>
+    <h1>Dispare um lote de pedidos.</h1>
+    <p class="lead">Escolha a quantidade. A página cria pedidos válidos automaticamente e mostra o progresso em tempo real.</p>
+    <form id="launcher">
+      <label for="orderCount">Quantidade de orders
+        <input id="orderCount" name="orderCount" type="number" min="1" max="10000" value="100" required inputmode="numeric">
+      </label>
+      <button id="startButton" type="submit">Enviar agora</button>
+    </form>
+    <div class="progress" aria-label="Progresso do lote"><div id="progressBar"></div></div>
+    <div class="status" aria-live="polite"><span id="progressText">0 / 0 concluídos</span><span id="resultText">0 sucesso · 0 falha</span></div>
+    <p id="message">Pronto para enviar.</p>
+    <p class="hint">São enviados no máximo 20 requests simultâneos para não travar o navegador. Para taxa sustentada e reproduzível, use o plano JMeter em <code>loadtest/order-load-test.jmx</code>.</p>
+  </main>
+  <script>
+    const MAX_CONCURRENCY = 20;
+    const form = document.querySelector('#launcher');
+    const input = document.querySelector('#orderCount');
+    const startButton = document.querySelector('#startButton');
+    const progressBar = document.querySelector('#progressBar');
+    const progressText = document.querySelector('#progressText');
+    const resultText = document.querySelector('#resultText');
+    const message = document.querySelector('#message');
+
+    function orderPayload(index) {
+      const nonce = `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`;
+      return {
+        customerId: `WEB-${nonce}`,
+        currency: 'BRL',
+        items: [{ sku: 'SKU-1001', name: 'Fone Bluetooth', quantity: 1, unitPrice: 19990 }],
+        shippingAddress: { street: 'Av. Paulista, 1000', city: 'Sao Paulo', state: 'SP', zipCode: '01310-100', country: 'BR' }
+      };
+    }
+
+    function render(total, completed, succeeded, failed) {
+      progressBar.style.width = `${total ? (completed / total) * 100 : 0}%`;
+      progressText.textContent = `${completed} / ${total} concluídos`;
+      resultText.textContent = `${succeeded} sucesso · ${failed} falha`;
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const total = Number(input.value);
+      if (!Number.isInteger(total) || total < 1 || total > 10000) {
+        message.textContent = 'Escolha um número inteiro entre 1 e 10.000.';
+        message.className = 'error';
+        input.focus();
+        return;
+      }
+
+      let next = 0, completed = 0, succeeded = 0, failed = 0;
+      startButton.disabled = true;
+      input.disabled = true;
+      message.textContent = `Enviando ${total} orders...`;
+      message.className = '';
+      render(total, completed, succeeded, failed);
+
+      async function worker() {
+        while (next < total) {
+          const index = next++;
+          try {
+            const response = await fetch('/orders', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(orderPayload(index))
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            succeeded++;
+          } catch (error) {
+            failed++;
+          } finally {
+            completed++;
+            render(total, completed, succeeded, failed);
+          }
+        }
+      }
+
+      await Promise.all(Array.from({ length: Math.min(MAX_CONCURRENCY, total) }, worker));
+      startButton.disabled = false;
+      input.disabled = false;
+      if (failed === 0) {
+        message.textContent = `${succeeded} orders aceitos e publicados no Kafka.`;
+        message.className = 'success';
+      } else {
+        message.textContent = `Lote finalizado: ${succeeded} aceitos e ${failed} falharam.`;
+        message.className = 'error';
+      }
+    });
+  </script>
+</body>
+</html>
